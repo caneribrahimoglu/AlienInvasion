@@ -33,3 +33,8 @@ class Ship:
     def blitme(self):
         """Gemiyi nevcut konumda ciz"""
         self.screen.blit(self.image, self.rect)
+
+    def center_ship(self):
+        """Gemiyi ekranda merkeze koy"""
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x)

@@ -1,9 +1,12 @@
 import sys
 import pygame
 from settings import Settings
+from game_stats import GameStats
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+from time import sleep
+
 
 class AlienInvasion():
     """Oyun degerlerini ve davranisini yonetmek icin bir sinif"""
@@ -15,6 +18,8 @@ class AlienInvasion():
         self.settings.screen_width = self.screen.get_rect().width
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption('Alien Invasion')
+        #Oyun istatistiklerini saklamak icin bir ornek olustur
+        self.stats = GameStats(self)
 
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
@@ -71,12 +76,27 @@ class AlienInvasion():
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
-        # print(len(self.bullets))
+
+        self._check_bullet_alien_collisions()
+
+    def _check_bullet_alien_collisions(self):
+        """Mermi ve Uzayli carpismasina izin ver"""
+        #Uzaylilara carpan mermileri kontrol et ve bulustular ise ikisinden de kurtul
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+
+        if not self.aliens:
+            #var olan mermileri imha et ve yeni filo olustur
+            self.bullets.empty()
+            self._create_fleet()
 
     def _update_aliens(self):
         """Filonun kenarda olup olmadigini kontrol et ve daha sonra  Filodaki tum uzaylilarin konumlarini guncelle"""
         self._check_fleet_edges()
         self.aliens.update()
+
+        if pygame.sprite.spritecollide(self.ship, self.aliens, False):
+            self._ship_hit()
+        self._check_aliens_bottom()
 
     def _update_screen(self):
         """Ekrandaki resimleri guncelle ve yeni ekrana don"""
@@ -129,6 +149,33 @@ class AlienInvasion():
         for alien in self.aliens.sprites():
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
+
+    def _ship_hit(self):
+        """Uzayli tarafindan vurulan gemiye yanit ver"""
+        if self.stats.ship_left > 0:
+            # Kalan gemi sayisini azalt
+            self.stats.ship_left -= 1
+            # Geri kalan uzayli gemisi ve mermilerden kurtul
+            self.aliens.empty()
+            self.bullets.empty()
+
+            # Yeni bir filo olustur ve gemiyi merkeze koy
+            self._create_fleet()
+            self.ship.center_ship()
+            # Durdur 1 sn
+            sleep(1)
+        else:
+            self.stats.game_active = False
+
+
+
+    def _check_aliens_bottom(self):
+        """Herhangi bir uzaylinin ekranin alt kismina ulasip ulasmadigini kontrol et"""
+        screen_rect = self.screen.get_rect()
+        for alien in self.aliens.sprites():
+            if alien.rect.bottom >= screen_rect.bottom:
+                self._ship_hit()
+                break
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ class GameStats:
         self.reset_stats()
         #Oyunu Aktif olmayan bir durumda baslat
         self.game_active = False
+        self.high_score = 0
 
 
 
@@ -13,6 +14,7 @@ class GameStats:
         """Oyun esnasinda degisebilecek istatistiklere ilk deger ata"""
         self.ship_left = self.settings.ship_limit
         self.score = 0
+        self.level = 1
 
         #en yuksek skor hicbir zaman resetlenmemeli
         self.high_score = 0

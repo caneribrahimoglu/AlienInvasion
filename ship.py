@@ -1,8 +1,10 @@
 import pygame
+from pygame.sprite import Sprite
 
-class Ship:
+class Ship(Sprite):
     """Gemiyi yonetecek bir sinif."""
     def __init__(self, ai_game):
+        super().__init__()
         """Gemiyi baslat ve konumunu belirle"""
         self.screen = ai_game.screen
         self.settings = ai_game.settings

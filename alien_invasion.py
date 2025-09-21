@@ -9,7 +9,7 @@ from alien import Alien
 from time import sleep
 from button import Button
 
-class AlienInvasion():
+class AlienInvasion:
     """Oyun degerlerini ve davranisini yonetmek icin bir sinif"""
     def __init__(self):
         """Oyunu baslat ve oyun kaynaklarini olustur"""
@@ -68,6 +68,8 @@ class AlienInvasion():
             #prep_score u yeni bir oyuna baslarken oyun istatistiklerini sifirladiktan sonra burada cagiriyoruz
             #Boylece ekranda gorunen skor sifirlanmis olur.
             self.sb.prep_score()
+            self.sb.prep_level()
+            self.sb.prep_ships()
             #Geri kalan uzaylilar ve mermilerden kurtul.
             self.aliens.empty()
             self.bullets.empty()
@@ -128,6 +130,10 @@ class AlienInvasion():
             self.bullets.empty()
             self._create_fleet()
             self.settings.increase_speed()
+            #seviyeyi arttir
+            self.stats.level += 1
+            self.sb.prep_level()
+
 
     def _update_aliens(self):
         """Filonun kenarda olup olmadigini kontrol et ve daha sonra  Filodaki tum uzaylilarin konumlarini guncelle"""
@@ -203,6 +209,7 @@ class AlienInvasion():
         if self.stats.ship_left > 0:
             # Kalan gemi sayisini azalt
             self.stats.ship_left -= 1
+            self.sb.prep_ships()
             # Geri kalan uzayli gemisi ve mermilerden kurtul
             self.aliens.empty()
             self.bullets.empty()

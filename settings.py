@@ -10,7 +10,7 @@ class Settings:
         self.ship_limit = 3
         #Mermi ayarlari
         #self.bullet_speed_factor = 5
-        self.bullet_width = 500
+        self.bullet_width = 5
         self.bullet_height = 15
         self.bullet_color = (255, 0, 0)
         self.bullets_allowed = 3

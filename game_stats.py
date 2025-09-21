@@ -16,7 +16,6 @@ class GameStats:
         self.score = 0
         self.level = 1
 
-        #en yuksek skor hicbir zaman resetlenmemeli
-        self.high_score = 0
+
 
 

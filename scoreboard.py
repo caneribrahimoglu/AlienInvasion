@@ -26,7 +26,8 @@ class Scoreboard:
     def prep_ships(self):
         """kac gemi kaldigini goster"""
         self.ships = Group()
-        for ship_number in range(self.stats.ships_left):
+        for ship_number in range(self.stats.ship_left):
+            ship = Ship(self.ai_game)
             ship.rect.x = 10 + ship_number * ship.rect.width
             ship.rect.y = 10
             self.ships.add(ship)

@@ -8,6 +8,7 @@ from bullet import Bullet
 from alien import Alien
 from time import sleep
 from button import Button
+from pathlib import Path
 
 class AlienInvasion:
     """Oyun degerlerini ve davranisini yonetmek icin bir sinif"""
@@ -29,8 +30,61 @@ class AlienInvasion:
         self._create_fleet()
         #Play dugmesini olustur
         self.play_button = Button(self, "Play")
+        self.audio_enabled = False
+        self.sounds = {}
+        self.music_path = None
+        self._init_audio()
         #Arka plan rengini ayarla
         self.bg_color = (230, 230, 230)
+
+    def _init_audio(self):
+        """Ses varliklarini yukle ve ses motorunu hazirla"""
+        sound_dir = Path(__file__).resolve().parent / 'sounds'
+        if not sound_dir.exists():
+            return
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+        except pygame.error as err:
+            print(f'Ses motoru baslatilamadi: {err}')
+            return
+        self.audio_enabled = True
+        effect_files = {
+            'laser': 'laser.wav',
+            'explosion': 'explosion.wav',
+        }
+        for name, filename in effect_files.items():
+            effect_path = sound_dir / filename
+            if effect_path.exists():
+                try:
+                    self.sounds[name] = pygame.mixer.Sound(str(effect_path))
+                except pygame.error as err:
+                    print(f"{filename} yuklenemedi: {err}")
+        music_path = sound_dir / 'background.wav'
+        if music_path.exists():
+            try:
+                pygame.mixer.music.load(str(music_path))
+                pygame.mixer.music.set_volume(0.1)
+                self.music_path = music_path
+            except pygame.error as err:
+                print(f'Arka plan muzigi yuklenemedi: {err}')
+                self.music_path = None
+
+    def _play_sound(self, name):
+        if not self.audio_enabled:
+            return
+        sound = self.sounds.get(name)
+        if sound:
+            sound.play()
+
+    def _start_background_music(self):
+        if not self.audio_enabled or not self.music_path:
+            return
+        pygame.mixer.music.play(-1)
+
+    def _stop_background_music(self):
+        if self.audio_enabled and pygame.mixer.music.get_busy():
+            pygame.mixer.music.fadeout(500)
 
     def run_game(self):
         """Oyun icin ana donguyu baslat"""
@@ -78,6 +132,7 @@ class AlienInvasion:
             self.ship.center_ship()
             #Mouse imlecini gizle
             pygame.mouse.set_visible(False)
+            self._start_background_music()
 
 
 
@@ -105,6 +160,7 @@ class AlienInvasion:
         if len(self.bullets) < self.settings.bullets_allowed:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
+            self._play_sound('laser')
 
     def _update_bullets(self):
         self.bullets.update()
@@ -124,6 +180,7 @@ class AlienInvasion:
                 self.stats.score += self.settings.alien_points * len(aliens)
             self.sb.prep_score()
             self.sb.check_high_score()
+            self._play_sound('explosion')
 
         if not self.aliens:
             #var olan mermileri imha et ve yeni filo olustur
@@ -206,7 +263,8 @@ class AlienInvasion:
 
     def _ship_hit(self):
         """Uzayli tarafindan vurulan gemiye yanit ver"""
-        if self.stats.ship_left > 0:
+        self._play_sound('explosion')
+        if self.stats.ship_left > 1:
             # Kalan gemi sayisini azalt
             self.stats.ship_left -= 1
             self.sb.prep_ships()
@@ -221,6 +279,7 @@ class AlienInvasion:
             sleep(1)
         else:
             self.stats.game_active = False
+            self._stop_background_music()
             pygame.mouse.set_visible(True)
 
 

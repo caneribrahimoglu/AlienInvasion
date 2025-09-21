@@ -4,7 +4,9 @@ class GameStats:
         """istatistiklere ilk deger ata"""
         self.settings = ai_game.settings
         self.reset_stats()
-        self.game_active = True
+        #Oyunu Aktif olmayan bir durumda baslat
+        self.game_active = False
+
 
 
     def reset_stats(self):

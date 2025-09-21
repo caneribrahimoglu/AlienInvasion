@@ -2,6 +2,7 @@ import sys
 import pygame
 from settings import Settings
 from game_stats import GameStats
+from scoreboard import Scoreboard
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
@@ -18,8 +19,9 @@ class AlienInvasion():
         self.settings.screen_width = self.screen.get_rect().width
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption('Alien Invasion')
-        #Oyun istatistiklerini saklamak icin bir ornek olustur
+        #Bir ScoreBoard ve Oyun istatistiklerini saklamak icin bir ornek olustur
         self.stats = GameStats(self)
+        self.sb = Scoreboard(self)
 
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
@@ -51,6 +53,32 @@ class AlienInvasion():
                 self._check_keydown_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_button(mouse_pos)
+
+    def _check_play_button(self, mouse_pos):
+        """Oyuncu Play'e tikladiginda yeni oyuna basla"""
+        button_clicked = self.play_button.rect.collidepoint(mouse_pos)
+        if button_clicked and not self.stats.game_active:
+            #Oyun istatistiklerini resetle
+            self.settings.initialize_dynamic_settings()
+            self.stats.reset_stats()
+            self.stats.game_active = True
+            #prep_score u yeni bir oyuna baslarken oyun istatistiklerini sifirladiktan sonra burada cagiriyoruz
+            #Boylece ekranda gorunen skor sifirlanmis olur.
+            self.sb.prep_score()
+            #Geri kalan uzaylilar ve mermilerden kurtul.
+            self.aliens.empty()
+            self.bullets.empty()
+            #Yeni bir filo olustur ve gemiyi merkeze yerlestir
+            self._create_fleet()
+            self.ship.center_ship()
+            #Mouse imlecini gizle
+            pygame.mouse.set_visible(False)
+
+
+
 
 
     def _check_keydown_events(self, event):
@@ -89,10 +117,17 @@ class AlienInvasion():
         #Uzaylilara carpan mermileri kontrol et ve bulustular ise ikisinden de kurtul
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
 
+        if collisions:
+            for aliens in collisions.values():
+                self.stats.score += self.settings.alien_points * len(aliens)
+            self.sb.prep_score()
+            self.sb.check_high_score()
+
         if not self.aliens:
             #var olan mermileri imha et ve yeni filo olustur
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
 
     def _update_aliens(self):
         """Filonun kenarda olup olmadigini kontrol et ve daha sonra  Filodaki tum uzaylilarin konumlarini guncelle"""
@@ -112,6 +147,9 @@ class AlienInvasion():
             bullet.draw_bullet()
         # en son cizilen ekrani gorunur yap
         self.aliens.draw(self.screen)
+
+        #skor bilgisini ekrana ciz
+        self.sb.show_score()
 
         #Oyun aktif degilse play dugmesini ciz
         if not self.stats.game_active:
@@ -176,6 +214,7 @@ class AlienInvasion():
             sleep(1)
         else:
             self.stats.game_active = False
+            pygame.mouse.set_visible(True)
 
 
 

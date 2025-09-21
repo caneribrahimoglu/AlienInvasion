@@ -12,4 +12,9 @@ class GameStats:
     def reset_stats(self):
         """Oyun esnasinda degisebilecek istatistiklere ilk deger ata"""
         self.ship_left = self.settings.ship_limit
+        self.score = 0
+
+        #en yuksek skor hicbir zaman resetlenmemeli
+        self.high_score = 0
+
 
